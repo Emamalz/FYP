@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}MuMu | Fraud Platform{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background: #f8fafc;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto;
+            color: #0f172a;
+            overflow: hidden; /* 🔑 stop full-page scroll */
+        }
+
+        /* ===== APP LAYOUT ===== */
+        .app-layout {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 240px;
+            background: #ffffff;
+            border-right: 1px solid #e5e7eb;
+            padding: 20px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow: hidden; /* 🔑 sidebar never scrolls */
+        }
+
+        .brand-logo {
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            color: #0f172a;
+            text-decoration: none;
+        }
+
+        .sidebar-section {
+            margin-top: 28px;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #64748b;
+            padding: 0 24px 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 10px 24px;
+            font-size: 0.9rem;
+            color: #334155;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar a:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .sidebar a.active {
+            background: #eef2ff;
+            color: #1e40af;
+            border-left: 3px solid #2563eb;
+            font-weight: 500;
+        }
+
+        .sidebar-sub {
+            padding-left: 36px;
+        }
+
+        /* ===== MAIN AREA ===== */
+        .main-area {
+            margin-left: 240px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: calc(100vw - 240px);
+        }
+
+        /* Header */
+        .top-header {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            flex-shrink: 0;
+        }
+
+        .top-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .account-button {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #334155;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .account-button:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            text-decoration: none;
+        }
+
+        /* Scrollable content */
+        .page-content {
+            padding: 28px;
+            overflow-y: auto; /* 🔑 ONLY content scrolls */
+            flex-grow: 1;
+        }
+
+        /* Cards */
+        .card {
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: none;
+        }
+
+        /* Footer */
+        .content-footer {
+            padding: 16px 28px;
+            font-size: 0.8rem;
+            color: #64748b;
+            border-top: 1px solid #e5e7eb;
+            background: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logout {
+    display: block;
+    width: 100%;
+    padding: 10px 24px;
+    font-size: 0.9rem;
+    color: #334155;
+    background: none;
+    border: none;
+    text-align: left;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-logout:hover {
+    background: #fee2e2;   /* light red */
+    color: #991b1b;
+}
+
+    </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar d-flex flex-column">
+
+        <div class="px-4">
+            <a href="{% url 'mumu' %}" class="brand-logo">MuMu</a>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Overview</div>
+            <a href="{% url 'dashboard' %}"
+               class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                Dashboard
+            </a>
+            <a href="{% url 'transactions' %}"
+               class="sidebar-sub {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
+                Transactions
+            </a>
+        </div>
+
+        <!-- RISK -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Risk</div>
+            <a href="{% url 'fraud' %}"
+               class="sidebar-sub {% if request.resolver_match.url_name == 'fraud' %}active{% endif %}">
+                Fraud Detection
+            </a>
+            <a href="{% url 'models' %}"
+               class="sidebar-sub {% if request.resolver_match.url_name == 'models' %}active{% endif %}">
+                Models
+            </a>
+        </div>
+
+        <!-- DISPUTES -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Disputes</div>
+            <a href="{% url 'chargebacks' %}"
+               class="sidebar-sub {% if request.resolver_match.url_name == 'chargebacks' %}active{% endif %}">
+                Chargebacks
+            </a>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">Settings</div>
+            <a href="{% url 'account' %}" class="sidebar-sub">
+                Account Settings
+            </a>
+        </div>
+
+        <!-- Logout -->
+        <div class="mt-auto px-3 pb-3">
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="sidebar-logout">
+            Logout
+        </button>
+    </form>
+</div>
+
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main-area">
+
+        <div class="top-header">
+            <h5>{% block header %}{% endblock %}</h5>
+            <a href="{% url 'account' %}" class="account-button">My Account</a>
+        </div>
+
+        <div class="page-content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <footer class="content-footer">
+            © 2026 MuMu · Secure fraud & risk platform
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Transactions | MuMu{% endblock %}
+{% block header %}Transactions{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+
+    <!-- ======================
+         LEFT: TRANSACTIONS TABLE
+         ====================== -->
+    <div class="col-lg-8">
+
+        <div class="card">
+
+            <!-- HEADER / FILTERS -->
+            <form method="get"
+                  class="card-header bg-white border-bottom d-flex align-items-center gap-2">
+
+                <strong class="me-2">Transaction History</strong>
+
+                {% if fraud_only %}
+                    <a href="{% url 'transactions' %}{% if from_date or to_date %}?{% endif %}
+                             {% if from_date %}from={{ from_date }}{% endif %}
+                             {% if from_date and to_date %}&{% endif %}
+                             {% if to_date %}to={{ to_date }}{% endif %}"
+                       class="btn btn-sm btn-danger">
+                        Show All
+                    </a>
+                {% else %}
+                    <a href="{% url 'transactions' %}?fraud=1
+                             {% if from_date %}&from={{ from_date }}{% endif %}
+                             {% if to_date %}&to={{ to_date }}{% endif %}"
+                       class="btn btn-sm btn-outline-danger">
+                        Fraud Only
+                    </a>
+                {% endif %}
+
+                <input
+                    type="date"
+                    name="from"
+                    class="form-control form-control-sm w-auto"
+                    value="{{ from_date }}"
+                >
+
+                <input
+                    type="date"
+                    name="to"
+                    class="form-control form-control-sm w-auto"
+                    value="{{ to_date }}"
+                >
+
+                {% if fraud_only %}
+                    <input type="hidden" name="fraud" value="1">
+                {% endif %}
+
+                <button class="btn btn-sm btn-outline-primary">
+                    Apply
+                </button>
+
+                <a href="{% url 'transactions' %}"
+                   class="btn btn-sm btn-outline-secondary">
+                    Reset
+                </a>
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    class="form-control form-control-sm ms-auto"
+                    placeholder="Search ID, customer, amount, card…"
+                    style="max-width: 260px;"
+                >
+            </form>
+
+            <!-- TABLE -->
+            <div class="table-responsive"
+                 style="max-height: 520px; overflow-y: auto;">
+
+                <table class="table table-hover mb-0 align-middle transaction-table"
+                       id="transactionsTable">
+
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Transaction ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Payment</th>
+                            <th>Fraud Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for tx in transactions %}
+                        <tr {% if tx.fraud_label %}class="table-danger"{% endif %}>
+                            <td>
+                                {{ tx.transaction_timestamp|date:"Y-m-d H:i" }}
+                            </td>
+
+                            <td class="text-monospace">
+                                {{ tx.transaction_id }}
+                            </td>
+
+                            <td class="text-primary">
+                                {{ tx.customer_id }}
+                            </td>
+
+                            <td>
+                                £{{ tx.transaction_amount|floatformat:2 }}
+                            </td>
+
+                            <td>
+                                {{ tx.payment_method|title }} · {{ tx.card_brand|upper }}
+                            </td>
+
+                            <td>
+                                {% if tx.fraud_label %}
+                                    <span class="badge bg-danger">Fraud</span>
+                                {% else %}
+                                    <span class="badge bg-success">Not Fraud</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6"
+                                class="text-center text-muted py-4">
+                                No transactions found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+            <!-- FOOTER / PAGINATION -->
+            <div class="card-footer bg-white border-top
+                        d-flex justify-content-between align-items-center">
+
+                <div class="d-flex gap-2">
+
+                    {% if has_prev %}
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="?page={{ page|add:-1 }}
+                       {% if from_date %}&from={{ from_date }}{% endif %}
+                       {% if to_date %}&to={{ to_date }}{% endif %}
+                       {% if fraud_only %}&fraud=1{% endif %}">
+                        &lt; Prev
+                    </a>
+                    {% endif %}
+
+                    {% if has_next %}
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="?page={{ page|add:1 }}
+                       {% if from_date %}&from={{ from_date }}{% endif %}
+                       {% if to_date %}&to={{ to_date }}{% endif %}
+                       {% if fraud_only %}&fraud=1{% endif %}">
+                        Next &gt;
+                    </a>
+                    {% endif %}
+
+                </div>
+
+                <small class="text-muted">
+                    Page {{ page }} of {{ total_pages }}
+                </small>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================
+         RIGHT: ANALYTICS PANEL
+         ====================== -->
+    <div class="col-lg-4 d-flex">
+
+        <div class="card h-100 w-100">
+
+            <div class="card-header bg-white border-bottom">
+                <div class="fw-semibold">Fraud Insights</div>
+                <div class="text-muted small">
+                    Fraud vs transaction volume (selected range)
+                </div>
+            </div>
+
+            <div class="card-body">
+                <canvas id="fraudChart" height="220"></canvas>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ======================
+     STYLES
+     ====================== -->
+<style>
+.transaction-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+
+.transaction-table td {
+    font-size: 0.85rem;
+    color: #0f172a;
+}
+
+.text-monospace {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+</style>
+
+<!-- ======================
+     FAST SEARCH (PAGE-LOCAL)
+     ====================== -->
+<script>
+const searchInput = document.getElementById("searchInput");
+const rows = document.querySelectorAll("#transactionsTable tbody tr");
+
+searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+    rows.forEach(row => {
+        row.style.display =
+            row.textContent.toLowerCase().includes(query)
+                ? ""
+                : "none";
+    });
+});
+</script>
+
+<!-- ======================
+     CHART.JS
+     ====================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const chartLabels = {{ chart_labels|safe }};
+const totalTxData = {{ total_tx_data|safe }};
+const fraudTxData = {{ fraud_tx_data|safe }};
+
+if (chartLabels.length) {
+    new Chart(document.getElementById("fraudChart"), {
+        type: "bar",
+        data: {
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: "Total Transactions",
+                    data: totalTxData,
+                    backgroundColor: "#3b82f6"
+                },
+                {
+                    label: "Fraudulent Transactions",
+                    data: fraudTxData,
+                    backgroundColor: "#dc2626"
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: "bottom" }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            }
+        }
+    });
+} else {
+    document.getElementById("fraudChart").parentElement.innerHTML =
+        "<p class='text-muted small'>No data for selected range.</p>";
+}
+</script>
+
+{% endblock %}

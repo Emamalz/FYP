@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MuMu — AI Fraud Detection for SMEs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: radial-gradient(circle at top, #1f2933, #111827);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .badge-ai {
+            background-color: rgba(59,130,246,0.15);
+            color: #60a5fa;
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            color: #9ca3af;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            max-width: 600px;
+        }
+
+        .cta-btn {
+            border-radius: 12px;
+            padding: 14px 26px;
+            font-weight: 500;
+        }
+
+        .cta-primary {
+            background-color: #2563eb;
+            border: none;
+            color: white;
+        }
+
+        .cta-primary:hover {
+            background-color: #1d4ed8;
+        }
+
+        .cta-secondary {
+            border: 1px solid #374151;
+            color: white;
+            background: transparent;
+        }
+
+        .feature-card {
+            background-color: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 24px;
+            height: 100%;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .feature-card h5 {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: #9ca3af;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container hero">
+    <div class="row w-100 align-items-center">
+
+        <!-- LEFT: VALUE PROPOSITION -->
+        <div class="col-lg-7">
+            <span class="badge-ai">AI-Powered Fraud Prevention</span>
+
+            <h1>
+                Stop chargebacks<br>
+                before they happen
+            </h1>
+
+            <p>
+                MuMu uses machine learning to detect fraudulent card activity
+                in real-time, helping SMEs prevent chargebacks, reduce losses,
+                and protect customer trust
+            </p>
+
+            <div class="mt-4 d-flex gap-3">
+                <a href="{% url 'signup' %}" class="btn cta-btn cta-primary">
+                    Get started
+                </a>
+                <a href="{% url 'login' %}" class="btn cta-btn cta-secondary">
+                    Log in
+                </a>
+            </div>
+        </div>
+
+        <!-- RIGHT: FEATURES -->
+        <div class="col-lg-5 mt-5 mt-lg-0">
+            <div class="row g-4">
+                <div class="col-md-12">
+                    <div class="feature-card">
+                        <h5>Real-time risk scoring</h5>
+                        <p>
+                            Every transaction is evaluated instantly using
+                            behavioural signals and historical fraud patterns.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="feature-card">
+                        <h5>Chargeback prevention</h5>
+                        <p>
+                            Identify high-risk transactions before settlement
+                            and prevent disputes that damage revenue and reputation.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="feature-card">
+                        <h5>Built for SMEs</h5>
+                        <p>
+                            No complex rules, no fraud team required.
+                            Deploy fast and scale as your business grows.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

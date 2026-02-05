@@ -1,0 +1,111 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}MuMu Home{% endblock %}
+{% block header %}Home{% endblock %}
+
+{% block content %}
+
+<!-- Welcome -->
+<div class="mb-5">
+    <h4 class="mb-1">
+        Welcome, {{ request.user.username }}
+    </h4>
+</div>
+
+<!-- Quick Access -->
+<div class="row g-4">
+
+    <!-- Dashboard -->
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'dashboard' %}" class="text-decoration-none text-dark">
+            <div class="card h-100 p-4 shadow-sm quick-card">
+                <h6 class="text-muted mb-2">Overview</h6>
+                <h5 class="mb-1">Dashboard</h5>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                    View system-wide metrics and trends.
+                </p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Transactions -->
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'transactions' %}" class="text-decoration-none text-dark">
+            <div class="card h-100 p-4 shadow-sm quick-card">
+                <h6 class="text-muted mb-2">Activity</h6>
+                <h5 class="mb-1">Transactions</h5>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                    Browse and analyse transaction records.
+                </p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Fraud Detection -->
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'fraud' %}" class="text-decoration-none text-dark">
+            <div class="card h-100 p-4 shadow-sm quick-card">
+                <h6 class="text-muted mb-2">Security</h6>
+                <h5 class="mb-1">Fraud Detection</h5>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                    Review flagged and high-risk activity.
+                </p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Chargebacks -->
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'chargebacks' %}" class="text-decoration-none text-dark">
+            <div class="card h-100 p-4 shadow-sm quick-card">
+                <h6 class="text-muted mb-2">Disputes</h6>
+                <h5 class="mb-1">Chargebacks</h5>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                    Monitor and manage disputes.
+                </p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Models -->
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'models' %}" class="text-decoration-none text-dark">
+            <div class="card h-100 p-4 shadow-sm quick-card">
+                <h6 class="text-muted mb-2">ML</h6>
+                <h5 class="mb-1">Models</h5>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                    View and manage fraud models.
+                </p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Account -->
+    <div class="col-md-6 col-lg-4">
+        <a href="{% url 'account' %}" class="text-decoration-none text-dark">
+            <div class="card h-100 p-4 shadow-sm quick-card">
+                <h6 class="text-muted mb-2">Profile</h6>
+                <h5 class="mb-1">Account Settings</h5>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                    Update your details and security settings.
+                </p>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+<!-- Hover styling -->
+<style>
+    .quick-card {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        border-radius: 14px;
+    }
+
+    .quick-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+</style>
+
+{% endblock %}
