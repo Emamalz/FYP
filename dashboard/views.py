@@ -8,10 +8,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib import messages
-from django.contrib.auth import logout
 from django.urls import reverse_lazy
-
 from django.db.models import Sum
+
 from dashboard.models import Transaction
 
 
@@ -29,20 +28,16 @@ def transactions(request):
 
     df = pd.read_csv(csv_path)
 
-    # -----------------------
-    # TIMESTAMP (ROBUST)
-    # -----------------------
     df["transaction_timestamp"] = pd.to_datetime(
         df["transaction_timestamp"],
         dayfirst=True,
         errors="coerce"
     )
 
-    # fallback to unix_time
-    missing_ts = df["transaction_timestamp"].isna()
     if "unix_time" in df.columns:
-        df.loc[missing_ts, "transaction_timestamp"] = pd.to_datetime(
-            df.loc[missing_ts, "unix_time"],
+        missing = df["transaction_timestamp"].isna()
+        df.loc[missing, "transaction_timestamp"] = pd.to_datetime(
+            df.loc[missing, "unix_time"],
             unit="s",
             errors="coerce"
         )
@@ -50,139 +45,84 @@ def transactions(request):
     df = df.dropna(subset=["transaction_timestamp"])
     df["transaction_timestamp"] = df["transaction_timestamp"].dt.floor("s")
 
-    # -----------------------
-    # AMOUNT
-    # -----------------------
     df["transaction_amount"] = pd.to_numeric(
         df["transaction_amount"], errors="coerce"
     ) / 100
 
-    # -----------------------
-    # FRAUD LABEL (FINAL FIX)
-    # -----------------------
     df["fraud_label"] = df["fraud_label"].apply(
-        lambda x: True if str(x).strip().lower() == "true" else False
+        lambda x: str(x).strip().lower() == "true"
     )
 
-    # -----------------------
-    # DATE FILTERS (FULL DAY SAFE)
-    # -----------------------
     start_date = request.GET.get("from")
     end_date = request.GET.get("to")
 
     if start_date:
-        start_dt = pd.to_datetime(start_date).normalize()
-        df = df[df["transaction_timestamp"] >= start_dt]
+        df = df[df["transaction_timestamp"] >= pd.to_datetime(start_date)]
 
     if end_date:
-        end_dt = pd.to_datetime(end_date).normalize() + pd.Timedelta(days=1)
-        df = df[df["transaction_timestamp"] < end_dt]
+        df = df[df["transaction_timestamp"] < pd.to_datetime(end_date) + pd.Timedelta(days=1)]
 
-    # -----------------------
-    # FRAUD TOGGLE (IMPORTANT)
-    # -----------------------
-    fraud_only = request.GET.get("fraud")
-    if fraud_only == "1":
-        df = df[df["fraud_label"] == True]
+    fraud_only = request.GET.get("fraud") == "1"
+    if fraud_only:
+        df = df[df["fraud_label"]]
 
-    # -----------------------
-    # SEARCH (SERVER-SIDE, BEFORE PAGINATION)
-    # -----------------------
-    search = request.GET.get("search")
-    if search:
-        search = search.lower()
-        df = df[
-            df["transaction_id"].str.lower().str.contains(search, na=False)
-            | df["customer_id"].str.lower().str.contains(search, na=False)
-        ]
-
-    # -----------------------
-    # SORT (AFTER ALL FILTERS)
-    # -----------------------
     df = df.sort_values("transaction_timestamp", ascending=False)
 
-    # -----------------------
-    # PAGINATION (LAST STEP)
-    # -----------------------
     page_size = 50
-    page = int(request.GET.get("page", 1))
+    page = max(int(request.GET.get("page", 1)), 1)
 
-    total_rows = len(df)
-    total_pages = max((total_rows - 1) // page_size + 1, 1)
+    total_pages = max((len(df) - 1) // page_size + 1, 1)
+    page = min(page, total_pages)
 
-    page = max(1, min(page, total_pages))
-    start = (page - 1) * page_size
-    end = start + page_size
+    page_df = df.iloc[(page - 1) * page_size : page * page_size]
 
-    page_df = df.iloc[start:end]
-
-    # -----------------------
-    # CHART (MATCHES FILTERED DATA)
-    # -----------------------
     grouped = (
-        df
-        .set_index("transaction_timestamp")
-        .resample("D")
-        .agg(
-            total_transactions=("transaction_id", "count"),
-            fraud_transactions=("fraud_label", "sum")
-        )
+        df.set_index("transaction_timestamp")
+          .resample("D")
+          .agg(
+              total=("transaction_id", "count"),
+              fraud=("fraud_label", "sum")
+          )
     )
 
-    grouped = grouped[grouped["total_transactions"] > 0]
-
-    chart_labels = grouped.index.strftime("%Y-%m-%d").tolist()
-    total_tx_data = grouped["total_transactions"].tolist()
-    fraud_tx_data = grouped["fraud_transactions"].tolist()
+    grouped = grouped[grouped["total"] > 0]
 
     context = {
-        "transactions": page_df.to_dict(orient="records"),
-
+        "transactions": page_df.to_dict("records"),
         "page": page,
         "total_pages": total_pages,
         "has_prev": page > 1,
         "has_next": page < total_pages,
-
-        "chart_labels": json.dumps(chart_labels),
-        "total_tx_data": json.dumps(total_tx_data),
-        "fraud_tx_data": json.dumps(fraud_tx_data),
-
+        "chart_labels": json.dumps(grouped.index.strftime("%Y-%m-%d").tolist()),
+        "total_tx_data": json.dumps(grouped["total"].tolist()),
+        "fraud_tx_data": json.dumps(grouped["fraud"].tolist()),
         "from_date": start_date or "",
         "to_date": end_date or "",
-        "fraud_only": fraud_only == "1",
-        "search": search or "",
+        "fraud_only": fraud_only,
     }
 
     return render(request, "dashboard/transactions.html", context)
 
+
 # ===========================
-# DASHBOARD (REAL APP DASHBOARD)
+# DASHBOARD
 # ===========================
 @login_required
 def dashboard(request):
-    total_transactions = Transaction.objects.count()
-    fraud_count = Transaction.objects.filter(fraud_label=True).count()
-    total_volume = (
-        Transaction.objects.aggregate(total=Sum("transaction_amount"))["total"] or 0
-    )
-
     return render(request, "dashboard/index.html", {
-        "total_transactions": total_transactions,
-        "fraud_count": fraud_count,
-        "total_volume": round(total_volume, 2),
+        "total_transactions": Transaction.objects.count(),
+        "fraud_count": Transaction.objects.filter(fraud_label=True).count(),
+        "total_volume": round(
+            Transaction.objects.aggregate(total=Sum("transaction_amount"))["total"] or 0,
+            2
+        ),
     })
 
 
-# ===========================
-# LANDING / MARKETING PAGE
-# ===========================
 def home(request):
     return render(request, "dashboard/home.html")
 
 
-# ===========================
-# OTHER PAGES
-# ===========================
 @login_required
 def fraud_view(request):
     return render(request, "dashboard/fraud.html")
@@ -208,19 +148,14 @@ def account_settings(request):
         request.user.email = request.POST.get("email")
         request.user.save()
         messages.success(request, "Account updated successfully.")
-
     return render(request, "dashboard/account.html")
 
 
-# ===========================
-# AUTH
-# ===========================
 def signup(request):
     form = UserCreationForm(request.POST or None)
     if form.is_valid():
         form.save()
         return redirect("login")
-
     return render(request, "dashboard/signup.html", {"form": form})
 
 
@@ -235,9 +170,3 @@ class CustomPasswordChangeView(PasswordChangeView):
     def form_valid(self, form):
         messages.success(self.request, "Password updated successfully.")
         return super().form_valid(form)
-
-
-def logout_view(request):
-    if request.method == "POST":
-        logout(request)
-        return redirect("home")

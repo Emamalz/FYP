@@ -1,6 +1,6 @@
 from django.urls import path
-from django.contrib.auth.views import LogoutView
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.views import LogoutView
 
 from . import views
 from .views import home, fraud_view
@@ -17,8 +17,7 @@ urlpatterns = [
     # Main pages
     path("mumu/", views.mumu, name="mumu"),
     path("dashboard/", views.dashboard, name="dashboard"),
-
-path("transactions/", views.transactions, name="transactions"),
+    path("transactions/", views.transactions, name="transactions"),
     path("fraud/", fraud_view, name="fraud"),
     path("chargebacks/", views.chargebacks, name="chargebacks"),
     path("models/", views.models, name="models"),
@@ -33,7 +32,7 @@ path("transactions/", views.transactions, name="transactions"),
         name="password_change"
     ),
 
-    # Password reset flow
+    # Password reset (logged out)
     path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(
@@ -62,6 +61,8 @@ path("transactions/", views.transactions, name="transactions"),
         ),
         name="password_reset_complete"
     ),
+
+    # Password reset while logged in
     path(
         "password-reset/logged-in/",
         auth_views.PasswordResetView.as_view(
