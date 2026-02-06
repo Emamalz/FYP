@@ -1,12 +1,26 @@
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-!n(%cl55$m9(n!7!*e3m28dl!*g+nzz0$ra3^_(r@!#yjq81t8'
 
-DEBUG = True
+# ======================
+# SECURITY
+# ======================
 
-ALLOWED_HOSTS = ["*"]  # REQUIRED for Render
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-dev-key-only"
+)
+
+DEBUG = False  # MUST be False in production
+
+ALLOWED_HOSTS = ["*"]  # OK for Render free tier
+
+
+# ======================
+# APPLICATIONS
+# ======================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -15,11 +29,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'dashboard',
 ]
 
+
+# ======================
+# MIDDLEWARE
+# ======================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # REQUIRED
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -27,6 +48,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+# ======================
+# URL / TEMPLATES
+# ======================
 
 ROOT_URLCONF = 'MUMU.urls'
 
@@ -47,29 +73,57 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'MUMU.wsgi.application'
 
+
+# ======================
+# DATABASE
+# ======================
+# Render FREE → use SQLite (Postgres later if needed)
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mumu_db',
-        'USER': 'Emz',
-        'PASSWORD': 'card',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+# ======================
+# INTERNATIONALISATION
+# ======================
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'dashboard' / 'static']
+
+# ======================
+# STATIC FILES (THIS FIXES YOUR ERROR)
+# ======================
+
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'dashboard' / 'static'
+]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+
+# ======================
+# AUTH
+# ======================
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'mumu'
 LOGOUT_REDIRECT_URL = 'home'
+
+
+# ======================
+# EMAIL (DEV ONLY)
+# ======================
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
