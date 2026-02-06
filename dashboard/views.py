@@ -129,6 +129,11 @@ def fraud_view(request):
 
 
 @login_required
+def orders(request):
+    return render(request, "dashboard/orders.html")
+
+
+@login_required
 def chargebacks(request):
     return render(request, "dashboard/chargebacks.html")
 

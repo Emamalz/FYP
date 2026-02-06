@@ -19,7 +19,7 @@
             background: #f8fafc;
             font-family: system-ui, -apple-system, Segoe UI, Roboto;
             color: #0f172a;
-            overflow: hidden; /* 🔑 stop full-page scroll */
+            overflow: hidden;
         }
 
         /* ===== APP LAYOUT ===== */
@@ -39,7 +39,7 @@
             top: 0;
             left: 0;
             height: 100vh;
-            overflow: hidden; /* 🔑 sidebar never scrolls */
+            overflow: hidden;
         }
 
         .brand-logo {
@@ -132,7 +132,7 @@
         /* Scrollable content */
         .page-content {
             padding: 28px;
-            overflow-y: auto; /* 🔑 ONLY content scrolls */
+            overflow-y: auto;
             flex-grow: 1;
         }
 
@@ -166,7 +166,7 @@
 }
 
 .sidebar-logout:hover {
-    background: #fee2e2;   /* light red */
+    background: #fee2e2;
     color: #991b1b;
 }
 
@@ -194,6 +194,10 @@
             <a href="{% url 'transactions' %}"
                class="sidebar-sub {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
                 Transactions
+            </a>
+            <a href="{% url 'orders' %}"
+               class="sidebar-sub {% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
+                Orders
             </a>
         </div>
 
