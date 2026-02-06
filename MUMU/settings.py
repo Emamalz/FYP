@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import dj_database_url
+import os
 
 from pathlib import Path
 
@@ -74,16 +76,15 @@ WSGI_APPLICATION = 'MUMU.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mumu_db',
-        'USER': 'Emz',
-        'PASSWORD': 'card',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
+
 
 
 # Password validation
